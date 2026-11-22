@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --bg-backdrop: #e9f1ef;
+  --bg-canvas: #f8fbfa;
+  --bg-surface: #ffffff;
+  --bg-soft: #eef5f3;
+  --border-hairline: #e2ece9;
+  --ink-primary: #14201e;
+  --ink-muted: #657672;
+  --mint-primary: #1fb8a6;
+  --mint-dark: #0e9485;
+  --mint-soft: #e6f8f5;
+  --amber-accent: #f59e0b;
+  --coral-accent: #f43f5e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  background-color: var(--bg-backdrop);
+  color: var(--ink-primary);
+  font-family: var(--font-jakarta), "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.mobile-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 4px 18px rgba(18, 35, 31, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
