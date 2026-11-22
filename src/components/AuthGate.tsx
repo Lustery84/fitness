@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { Lock, LogIn, Mail, UserPlus } from "lucide-react";
-import { getBrowserSupabase } from "@/lib/storage/supabase";
+import {
+  getBrowserSupabase,
+  setBrowserSupabaseConfig,
+} from "@/lib/storage/supabase";
 
 interface AuthGateProps {
+  supabaseConfig?: { url: string; publicKey: string } | null;
   onAuthenticated: () => void;
 }
 
-export function AuthGate({ onAuthenticated }: AuthGateProps) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+export function AuthGate({ supabaseConfig, onAuthenticated }: AuthGateProps) {
+  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,8 +22,16 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (supabaseConfig?.url && supabaseConfig?.publicKey) {
+      setBrowserSupabaseConfig(supabaseConfig.url, supabaseConfig.publicKey);
+    }
     const supabase = getBrowserSupabase();
-    if (!supabase) return;
+    if (!supabase) {
+      setError(
+        "Chưa nhận được cấu hình Supabase ở trình duyệt. Kiểm tra NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY rồi Redeploy.",
+      );
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -48,11 +60,15 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
           onAuthenticated();
         } else {
           setMessage(
-            "Đã tạo tài khoản! Kiểm tra email để xác nhận (hoặc tắt Confirm Email trong Supabase Auth để vào ngay).",
+            "Đã tạo tài khoản! Kiểm tra email xác nhận hoặc bấm Đăng nhập nếu dự án đã tắt Confirm email.",
           );
           setMode("login");
         }
       }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Lỗi kết nối khi đăng nhập/đăng ký.",
+      );
     } finally {
       setLoading(false);
     }
@@ -76,7 +92,10 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
         <div className="grid grid-cols-2 rounded-full bg-[var(--bg-soft)] p-1 text-xs font-bold">
           <button
             type="button"
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login");
+              setError(null);
+            }}
             className={`rounded-full py-2 transition ${
               mode === "login"
                 ? "bg-[var(--mint-primary)] text-white"
@@ -87,7 +106,10 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
           </button>
           <button
             type="button"
-            onClick={() => setMode("signup")}
+            onClick={() => {
+              setMode("signup");
+              setError(null);
+            }}
             className={`rounded-full py-2 transition ${
               mode === "signup"
                 ? "bg-[var(--mint-primary)] text-white"

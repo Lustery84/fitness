@@ -27,7 +27,10 @@ import { WorkoutFocusView } from "./WorkoutFocusView";
 import { authFetch } from "@/lib/api/auth-fetch";
 import { RECIPE_BANK } from "@/lib/meal-plan/generator";
 import { searchFoods } from "@/lib/nutrition/vietnamese-foods";
-import { getBrowserSupabase } from "@/lib/storage/supabase";
+import {
+  getBrowserSupabase,
+  setBrowserSupabaseConfig,
+} from "@/lib/storage/supabase";
 import type {
   BodyMeasurement,
   DietaryPref,
@@ -45,6 +48,7 @@ interface AppState {
   workoutLogs: WorkoutLog[];
   measurements: BodyMeasurement[];
   storageMode: string;
+  supabaseConfig?: { url: string; publicKey: string } | null;
 }
 
 function getTodayIso(): string {
@@ -75,7 +79,15 @@ export function FitSnapApp() {
     setLoading(true);
     authFetch("/api/state")
       .then((r) => r.json())
-      .then((data: AppState) => setState(data))
+      .then((data: AppState) => {
+        if (data.supabaseConfig?.url && data.supabaseConfig?.publicKey) {
+          setBrowserSupabaseConfig(
+            data.supabaseConfig.url,
+            data.supabaseConfig.publicKey,
+          );
+        }
+        setState(data);
+      })
       .finally(() => setLoading(false));
   }
 
@@ -143,7 +155,12 @@ export function FitSnapApp() {
   }
 
   if (state.storageMode === "supabase" && !state.authenticated) {
-    return <AuthGate onAuthenticated={reloadState} />;
+    return (
+      <AuthGate
+        supabaseConfig={state.supabaseConfig}
+        onAuthenticated={reloadState}
+      />
+    );
   }
 
   if (!state.profile || editingQuiz) {
